@@ -2,7 +2,6 @@
 #What we need this part is some normal packages for web scraping
 ##############################################################
 import urllib
-import urllib2
 import re
 import os
 from socket import timeout
