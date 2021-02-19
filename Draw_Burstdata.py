@@ -1,8 +1,10 @@
+###############################################################
+#What we need this part is some normal packages for web scraping
+##############################################################
 import urllib
 import urllib2
 import re
 import os
-#dir(re)
 from socket import timeout
 from socket import error as SocketError
 import subprocess
@@ -10,6 +12,9 @@ import time
 import sys
 import ssl
 from functools import wraps
+#########################################
+#This function is for error 584
+##########################################
 def sslwrap(func):
     @wraps(func)
     def bar(*args, **kw):
@@ -17,11 +22,15 @@ def sslwrap(func):
         return func(*args, **kw)
     return bar
 ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+###################################################################
 year=sys.argv[2:]
 yourdir=sys.argv[1]
 rooturl="https://heasarc.gsfc.nasa.gov/FTP/fermi/data/gbm/bursts/"
 if not os.path.exists(yourdir+'BurstData') :
     os.makedirs(yourdir+'BurstData')
+##################################################################
+#Function for transforming the size of file (like Mb to Gb, etc.)
+###################################################################
 def format_size(bytes):
     try:
         bytes = float(bytes)
@@ -38,6 +47,9 @@ def format_size(bytes):
             return "%.1fM" % (M)
     else:
         return "%.1fK" % (kb)
+#######################################################################################
+#Function for 'urllib.retrieve()', usually  as the  third parameter 
+################################################################################################
 def reporthook(a,b,c):
     """
         display downloading proces
@@ -119,27 +131,30 @@ def reporthook2(a,b,c):
     sys.stdout.flush()
 #     if per == 100:
 #         sys.stdout.write('\n This file has been downloaded')
+#######################################################################################################
+#for loop and while loop to ergodic year and every file
+########################################################################################################
 
-
-for year in year:    
+for year in year:
     if not os.path.exists(yourdir+'BurstData'+'/'+year+'/'):
         os.makedirs(yourdir+'BurstData'+'/'+year+'/')
+    else:
+        print(yourdir+'BurstData'+'/'+year+'/'+" exists"+'\n')
     try:
         webcontent=urllib.urlopen(rooturl+year+"/").read()
         pat='>bn(.*?)/</a> '
         burstinfo=re.compile(pat).findall(webcontent)
         burstinfo=iter('bn'+i for i in burstinfo)
         while True:
-             try:
-                a=0
-                b=0
-                c=0
+            a,b,c=0,0,0
+            try:
                 burstdir=next(burstinfo)
+                print('\n'+"#################"+'\n'+"start downloading"+burstdir+'\n')
                 if not os.path.exists(yourdir+'BurstData'+'/'+year+'/'+burstdir):
                     os.makedirs(yourdir+'BurstData'+'/'+year+'/'+burstdir)
                 else:
-                    print(yourdir+'BurstData'+'/'+year+'/'+burstdir+"exists")
-                print("start downloading "+burstdir+'\n')
+                    print(yourdir+'BurstData'+'/'+year+'/'+burstdir+" exists")
+                #print('\n'+"start downloading "+burstdir+'\n')
                 foldercurrent=urllib.urlopen(rooturl+year+"/"
                     +burstdir+"/current/").read()
                 pat1='>g(.*?)</a> '
@@ -171,7 +186,8 @@ for year in year:
                             urllib.urlretrieve(filenameurl,yourdir+'BurstData'+'/'+
                                     year+'/'+burstdir+'/current/'+filename,reporthook) 
                         else:
-                            print(filename+'exists')
+                            a=a+1
+                            print(filename+' exists')
                            # continue
                     except timeout:
                         print("==> Timeout")
@@ -192,7 +208,8 @@ for year in year:
                             urllib.urlretrieve(filename1url,yourdir+'BurstData'+'/'+
                                      year+'/'+burstdir+'/previous/'+filename1,reporthook1)
                         else:
-                            print(filename1+'exists')
+                            b=b+1
+                            print(filename1+' exists')
                            # continue
                     except timeout:
                         print("==> Timeout")
@@ -213,16 +230,16 @@ for year in year:
                             urllib.urlretrieve(filename2url,yourdir+'BurstData'+'/'+
                                      year+'/'+burstdir+'/quicklook/'+filename2,reporthook2)
                         else:
-                            print(filename2+'exists')
+                            c=c+1
+                            print(filename2+' exists')
                            # continue
                     except timeout:
                         print("==> Timeout")
                     except StopIteration:
                         break     
-             except timeout:
+            except timeout:
                 print("==> Timeout")
-             except StopIteration:
-                break   
-                #u=urllib.urlretrieve(filenameurl,filename,reporthook)               
+            except StopIteration:
+                break                  
     except timeout:
         print("==> Timeout")       
